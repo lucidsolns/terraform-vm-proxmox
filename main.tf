@@ -3,12 +3,13 @@ terraform {
   required_providers {
     /*
       API provisioning support for Proxmox
+
       see
         - https://registry.terraform.io/providers/Telmate/proxmox/latest
     */
     proxmox = {
       // https://developer.hashicorp.com/terraform/cli/config/config-file#provider-installation
-      source  = "terraform.local/telmate/proxmox"
+      source  = "Telmate/proxmox"
       version = ">= 2.9.15"
     }
 
