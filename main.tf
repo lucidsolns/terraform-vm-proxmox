@@ -93,29 +93,29 @@ resource "proxmox_vm_qemu" "proxmox_flatcar_vm" {
   # Note: Terraform (at least on Windows) loves putting CRLF sequences to the
   #       string, which just causes problems (so remove the CR's).
   #
-  desc = replace(<<-EOT
-      A flatcar VM provisioned with Terraform from template ${var.template_name} on ${timestamp()}
-
-      %{if var.description != null && var.description != ""~}
+  desc = replace(<<EOT
+%{if var.description != null && var.description != ""~}
 ${var.description}
-      %{endif~}
+%{endif~}
 
-      ## Configuration
+A VM provisioned with Terraform from template ${var.template_name} on ${timestamp()}
 
-      ```
-      %{if local.has_butane~}
+## Configuration
+
+```
+%{if local.has_butane}
 hook-script: local:snippets/cloudinit-to-ignition
 cloud-init: ${proxmox_cloud_init_disk.ignition_cloud_init[count.index].id}
-      %{endif~}
+%{endif}
 
-      %{if local.has_virtiofs~}
+%{if local.has_virtiofs}
 hook-script: local:snippets/virtiofsd.pl
-        %{for i, fs in var.virtiofs[*]~}
+%{for i, fs in var.virtiofs[*]~}
 virtiofs: --path "${fs.dirid}" --socket /run/virtiofs/vm${var.vm_id + count.index}-fs${i}
-        %{endfor~}
-      %{endif~}
+%{endfor~}
+%{endif}
 
-      ```
+```
 EOT
   , "\r", "")
 

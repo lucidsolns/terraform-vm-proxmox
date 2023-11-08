@@ -31,11 +31,14 @@ specific about this script that requires the VM to be running flatcar.
 
 To use this Terraform module the following pre-requisites must be met:
 1. Add your root proxmox credentials to a `.tfvars` file
-1. Install the hookscript into `local:snippets`
-1. Create a VM template
+1. Install the hookscript on your Proxmos hosts into `local:snippets`
+1. Create a VM template (e.g. Flatcar Linux)
     - the template **must** have the hookscript set to `multi-hookscript.pl`
 1. Install [terraform-provider-proxmox](https://registry.terraform.io/providers/Telmate/proxmox/latest/docs) v2.9.15 or greater 
 1. Install `virtiofsd` (rust) in `/usr/local/bin` 
+
+The example scripts require a `.tfvars` file with your proxmox URL, username,
+and password.
 
 Three hookscripts are provided with this module. They must be available in
 a snippets directory and must be executable. They have been tested in the 
@@ -47,8 +50,12 @@ and/or virtiofs support as required. The template **must** set the hookscript
 to `local:snippets/multi-hookscript.pl`.
 
 As of November 2023 the latest version of the Telemate/proxmox provider is v2.9.14
-which has a few issues that result in a crash with this script. They have been fixed
-in the source code, but not formally released.
+which has a few issues that result in the provider crashing with this script. They have been fixed
+in the source code, but not formally released. A Windows build of Telmate/proxmox v2.9.15
+has been provided that can be copied to your sample so that `terraform init` is successfully.
+
+Compile or copy the `[virtiofsd](https://share.lucidsolutions.co.nz/pub/debian/bookworm/virtiofsd-1.8.0/)`
+to `user/local/bin` so that directories can be shared with virtiofs.
 
 # Multi-hookscript
 
