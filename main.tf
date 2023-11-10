@@ -117,7 +117,7 @@ virtiofs: --path "${fs.dirid}" --socket /run/virtiofs/vm${var.vm_id + count.inde
 
 ```
 EOT
-  , "\r", "")
+    , "\r", "")
 
   /*
     The QEMU arguments are being used where Proxmox doesn't have first class support
@@ -164,10 +164,13 @@ EOT
           -device  vhost-user-fs-pci,queue-size=1024,chardev=virtfs${i},tag=${fs.tag}
         %{endfor}
       %{endif}
+      %{for i, fs in var.plan9fs[*]}
+        -virtfs local,path=${fs.dirid},mount_tag=${fs.tag},security_model=${fs.security_model},id=p9-vm${var.vm_id}-fs${i}${fs.readonly ? ",readonly":""},multidevs=${fs.multidevs}
+      %{endfor}
 EOT
     ,
     "/[\r\n]+/",
-  " ")
+    " ")
 
 
   /*
@@ -255,7 +258,7 @@ EOT
   lifecycle {
     prevent_destroy       = false # this resource should be immutable **and** disposable
     create_before_destroy = false
-    ignore_changes = [
+    ignore_changes        = [
       disk, # the disk is provisioned in the template and inherited (but not defined here]
       desc  # the description on the first start, then the user can change it in the UI
     ]
@@ -277,7 +280,7 @@ EOT
       - https://developer.hashicorp.com/terraform/language/functions/templatefile
 */
 data "ct_config" "ignition_json" {
-  count = local.has_butane ? var.vm_count : 0
+  count   = local.has_butane ? var.vm_count : 0
   content = templatefile(var.butane_conf, {
     "vm_id"          = var.vm_count > 1 ? var.vm_id + count.index : var.vm_id
     "vm_name"        = var.vm_count > 1 ? "${var.name}-${count.index + 1}" : var.name
@@ -324,7 +327,7 @@ resource "proxmox_cloud_init_disk" "ignition_cloud_init" {
     A null resource to track changes, so that the immutable VM is recreated
  */
 resource "null_resource" "node_replace_trigger" {
-  count = var.vm_count
+  count    = var.vm_count
   # Changes to any instance of the cluster requires re-provisioning
   triggers = {
     "ignition" = local.has_butane ? "${data.ct_config.ignition_json[count.index].rendered}" : ""

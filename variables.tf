@@ -164,7 +164,7 @@ variable "virtiofs" {
   description = <<-EOF
     An ordered list of filesystems paths for the host
 
-    This data scripture is used to configure a directory to be exported from
+    This data structure is used to configure a directory to be exported from
     the host Proxmox into the VM using virtiofs.
 
     The parameters are modeled on the June 2023 patch by Markus Frank, which
@@ -188,6 +188,29 @@ variable "virtiofs" {
   default = [] // no virtiofs shares are performed by default
 }
 
+/*
+ */
+variable "plan9fs" {
+  description = <<-EOF
+    An ordered list of filesystems paths for the host.
+
+    This data structure is used to configure a directory to be exported from
+    the host Proxmox into the VM using plan9fs.
+
+    see:
+      - https://wiki.qemu.org/Documentation/9psetup
+      - http://www.linux-kvm.org/page/9p_virtio
+      - https://pve.proxmox.com/wiki/Manual:_qm.conf
+  EOF
+  type        = list(object({
+    dirid          = string
+    tag            = string
+    security_model = optional(string, "mapped-xattr") # mapped|mapped-xattr|mapped-file|passthrough|none
+    readonly       = optional(bool, false) #
+    multidevs      = optional(string, "warn") # remap|forbid|warn
+  }))
+  default = [] // no plan9 filesystems shares are performed by default
+}
 
 variable "os_type" {
   type        = string

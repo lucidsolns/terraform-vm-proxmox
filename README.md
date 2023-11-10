@@ -1,6 +1,9 @@
 # terraform-proxmox-vm
 
-A Terraform module to create Proxmox VMs with support for virtiofs and butane/ignition.
+A Terraform module to create Proxmox VMs with support for:
+   - butane/ignition configurations
+   - virtiofs filesystems
+   - plan9f filesystems
 
 A [butane](https://coreos.github.io/butane/) configuration provides a human
 readable YAML configuration to perform first time boot configuration of 
@@ -31,7 +34,7 @@ specific about this script that requires the VM to be running flatcar.
 
 To use this Terraform module the following pre-requisites must be met:
 1. Add your root proxmox credentials to a `.tfvars` file
-1. Install the hookscript on your Proxmos hosts into `local:snippets`
+1. Install the hookscript on your Proxmox host, into the `local:snippets` storage
 1. Create a VM template (e.g. Flatcar Linux)
     - the template **must** have the hookscript set to `multi-hookscript.pl`
 1. Install [terraform-provider-proxmox](https://registry.terraform.io/providers/Telmate/proxmox/latest/docs) v2.9.15 or greater 
@@ -47,7 +50,8 @@ a snippets directory and must be executable. They have been tested in the
 A VM template needs to be created that this module can clone. This can
 be any operating system that you choose that has ignition support
 and/or virtiofs support as required. The template **must** set the hookscript
-to `local:snippets/multi-hookscript.pl`.
+to `local:snippets/multi-hookscript.pl` (this is because it is not supported to
+set the hookscript via the terraform module)
 
 As of November 2023 the latest version of the Telemate/proxmox provider is v2.9.14
 which has a few issues that result in the provider crashing with this script. They have been fixed
@@ -106,6 +110,16 @@ for the API is promised. The changes to his script should be minimal when that s
 arrives. The names are variables used by this module have been taken from the patch
 to ease future transition.
 
+# Plan9 Filesystem
+
+This supports exporting directories from the Proxmox host into a VM. Multiple directories
+are supported.
+
+If the VM supports virtiofs then it seems a better option. As of November 2023, Flatcar
+Linux doesn't support virtiofs so the plan9fs is used for these VMs.
+
+The terraform for plan9fs support doesn't need a hookscript or a daemon. It simply
+sets the QEMU options at VM configuration time.
 
 ## Known Limitations
 
