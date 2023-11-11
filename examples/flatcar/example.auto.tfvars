@@ -6,3 +6,4 @@
 #pm_api_url = "https://proxmox.local:8006/api2/json"
 #pm_user     = "root@pam"
 #pm_password = "password"
+#target_node = "proxmox"

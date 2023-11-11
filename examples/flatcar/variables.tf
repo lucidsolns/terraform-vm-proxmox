@@ -12,7 +12,10 @@ variable "pm_api_url" {
 // see
 //  - https://thenewstack.io/automate-k3s-cluster-installation-on-flatcar-container-linux/
 //
-variable "target_node" { default = "raisin" }
+variable "target_node" {
+  description = "The name of the proxmox-ve node to provision the VM on"
+  type        = string
+}
 
 
 variable "pm_user" {
@@ -28,22 +31,12 @@ variable "pm_password" {
   default     = ""
 }
 
-variable "pm_api_token_id" {
-  default = "root@pam!terraform"
-}
-
-variable "pm_api_token_secret" {
-  description = "Provide an API secret in a *.auto.tfvars file (or via some other mechanism)"
-  default     = ""
-  sensitive   = true
-}
-
 variable "bridge" {
   default = "vmbr0"
-  type=string
+  type    = string
 }
 
 variable "network_tag" {
   default = 0
-  type = number
+  type    = number
 }
