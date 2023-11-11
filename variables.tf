@@ -263,3 +263,22 @@ variable "agent" {
   default     = true
   type        = bool
 }
+
+variable "onboot" {
+  description = "Specifies whether a VM will be started during system bootup"
+  type        = bool
+  default     = true
+}
+
+variable "startup" {
+  description = <<-EOF
+    Startup and shutdown behavior. Order is a non-negative number defining the general
+    startup order. Shutdown in done with reverse ordering. Additionally you can set
+    the up or down delay in seconds, which specifies a delay to wait before the next
+    VM is started or stopped.
+
+    startup = `[[order=]\d+] [,up=\d+] [,down=\d+]`
+  EOF
+  type        = string
+  default     = "order=any"
+}

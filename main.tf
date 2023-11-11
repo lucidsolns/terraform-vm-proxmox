@@ -225,7 +225,8 @@ EOT
   cpu     = var.cpu
   memory  = var.memory
   tags    = join(";", sort(var.tags)) # Proxmox sorts the tags, so sort them here to stop change thrash
-  onboot  = true
+  onboot  = var.onboot
+  startup = var.startup
   scsihw  = "virtio-scsi-single"
 
   // Support an array of virtio network adapters.
