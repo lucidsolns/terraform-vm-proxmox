@@ -103,18 +103,16 @@ A VM provisioned with Terraform from template ${var.template_name} on ${timestam
 ## Configuration
 
 ```
-%{if local.has_butane}
+%{if local.has_butane ~}
 hook-script: local:snippets/cloudinit-to-ignition
 cloud-init: ${proxmox_cloud_init_disk.ignition_cloud_init[count.index].id}
-%{endif}
-
-%{if local.has_virtiofs}
+%{endif ~}
+%{if local.has_virtiofs ~}
 hook-script: local:snippets/virtiofsd.pl
 %{for i, fs in var.virtiofs[*]~}
 virtiofs: --path "${fs.dirid}" --socket /run/virtiofs/vm${var.vm_id + count.index}-fs${i}
 %{endfor~}
-%{endif}
-
+%{endif ~}
 ```
 EOT
     , "\r", "")
