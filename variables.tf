@@ -131,9 +131,10 @@ variable "memory" {
 variable "networks" {
   description = "An ordered list of network interfaces"
   type        = list(object({
-    bridge = optional(string, "vmbr0")
-    tag    = optional(number)
-    mtu    = optional(number)
+    bridge  = optional(string, "vmbr0")
+    tag     = optional(number)
+    mtu     = optional(number)
+    macaddr = optional(string, "repeatable")
   }))
   default = [
     {

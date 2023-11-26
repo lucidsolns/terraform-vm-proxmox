@@ -228,13 +228,19 @@ EOT
   scsihw  = "virtio-scsi-single"
 
   // Support an array of virtio network adapters.
+  //
+  // If multiple VMs are created at the same time then the macaddr may be
+  // duplicated due to the time epoch being used to initialise the random
+  // seed (seen on Windows). Default to using the Telmate provider 'repeatable'
+  // option to generate a non-time based MAC address.
   dynamic "network" {
     for_each = var.networks
     content {
-      model  = "virtio"
-      bridge = lookup(network.value, "bridge", "vmbr0")
-      tag    = lookup(network.value, "tag", null)
-      mtu    = lookup(network.value, "mtu", null)
+      model   = "virtio"
+      bridge  = lookup(network.value, "bridge", "vmbr0")
+      tag     = lookup(network.value, "tag", null)
+      mtu     = lookup(network.value, "mtu", null)
+      macaddr = lookup(network.value, "macaddr", "repeatable")
     }
   }
 

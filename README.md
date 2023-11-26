@@ -168,6 +168,10 @@ As of November 2023, the following limitations and residuals have been observed:
    configuration. Markdown is used in the description to try and make clear which
    bit is configuration. 
 
+10. The Terraform provider Telmate/Proxmox can generate duplicate MAC addresses when
+   provisioning multiple VMs. IPv6 notices the duplicate/collision and doesn't complete
+   SLAAC, thus the VM doesn't get IPv6 addresses.
+
 # Links
 
 - https://austinsnerdythings.com/2021/09/01/how-to-deploy-vms-in-proxmox-with-terraform/
