@@ -237,10 +237,31 @@ EOT
     for_each = var.networks
     content {
       model   = "virtio"
-      bridge  = lookup(network.value, "bridge", "vmbr0")
-      tag     = lookup(network.value, "tag", null)
-      mtu     = lookup(network.value, "mtu", null)
-      macaddr = lookup(network.value, "macaddr", null)
+      bridge  = network.value.bridge
+      tag     = network.value.tag
+      mtu     = network.value.mtu
+
+      // The generated mac address is not unique if multiple VMs are created
+      // at the same time (best guess is that the same time epoch is used to seed
+      // a random number).
+      //
+      // This code takes a similar approach to the terraform API with the 'repeatable'
+      // strategy used in `config_qemu.go`. However the Linux MAC vendor prefix ('00:18:59')
+      // is replaced with the 16 bits of hash generated from the vm name.
+      //
+      // The overall MAC address is:
+      //  - a zero for the top 8 bits
+      //  - 16 bits of md5 of the vm name
+      //  - 19 bits of the VM id
+      //  - 5 bits of the interface index
+      macaddr = network.value.macaddr != null && network.value.macaddr != "" ? network.value.macaddr : format(
+        "%2.2x:%s:%s:%2.2x:%2.2x:%2.2x",
+        0,
+        substr(md5(var.name), 1, 2),
+        substr(md5(var.name), 3, 2),
+        floor(((var.vm_id + count.index) * 32 + index(var.networks, network.value)) / 65536) % 256,
+        floor(((var.vm_id + count.index) * 32 + index(var.networks, network.value)) / 256) % 256,
+        ((var.vm_id + count.index) * 32 + index(var.networks, network.value)) % 256)
     }
   }
 
