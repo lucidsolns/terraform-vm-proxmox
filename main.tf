@@ -240,7 +240,7 @@ EOT
       bridge  = lookup(network.value, "bridge", "vmbr0")
       tag     = lookup(network.value, "tag", null)
       mtu     = lookup(network.value, "mtu", null)
-      macaddr = lookup(network.value, "macaddr", "repeatable")
+      macaddr = lookup(network.value, "macaddr", null)
     }
   }
 

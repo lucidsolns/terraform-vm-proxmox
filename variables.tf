@@ -134,7 +134,7 @@ variable "networks" {
     bridge  = optional(string, "vmbr0")
     tag     = optional(number)
     mtu     = optional(number)
-    macaddr = optional(string, "repeatable")
+    macaddr = optional(string)
   }))
   default = [
     {
