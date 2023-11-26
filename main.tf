@@ -148,7 +148,7 @@ EOT
     to get the hookscript to run an instance of the virtiofsd (rust) daemon. See
     the generation of the description field.
  */
-  args = replace(
+  args = trimspace(replace(
     <<-EOT
       %{if local.has_butane}
         -fw_cfg name=opt/org.flatcar-linux/config,file=/etc/pve/local/ignition/${var.vm_id + count.index}.ign
@@ -168,7 +168,7 @@ EOT
 EOT
     ,
     "/[\r\n]+/",
-    " ")
+    " "))
 
 
   /*
@@ -236,10 +236,10 @@ EOT
   dynamic "network" {
     for_each = var.networks
     content {
-      model   = "virtio"
-      bridge  = network.value.bridge
-      tag     = network.value.tag
-      mtu     = network.value.mtu
+      model  = "virtio"
+      bridge = network.value.bridge
+      tag    = network.value.tag
+      mtu    = network.value.mtu
 
       // The generated mac address is not unique if multiple VMs are created
       // at the same time (best guess is that the same time epoch is used to seed
