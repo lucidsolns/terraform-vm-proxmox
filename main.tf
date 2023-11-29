@@ -249,11 +249,17 @@ EOT
       // strategy used in `config_qemu.go`. However the Linux MAC vendor prefix ('00:18:59')
       // is replaced with the 16 bits of hash generated from the vm name.
       //
+      // In the future a repeatable address with the proxmox registered 'bc:24:11'
+      // address should be used.
+      //
       // The overall MAC address is:
       //  - a zero for the top 8 bits
       //  - 16 bits of md5 of the vm name
       //  - 19 bits of the VM id
       //  - 5 bits of the interface index
+      //
+      // see:
+      //  - https://maclookup.app/macaddress/BC2411
       macaddr = network.value.macaddr != null && network.value.macaddr != "" ? network.value.macaddr : format(
         "%2.2x:%s:%s:%2.2x:%2.2x:%2.2x",
         0,
