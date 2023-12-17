@@ -135,31 +135,28 @@ As of November 2023, the following limitations and residuals have been observed:
    easier and more successful to use the 'file=' option (rather than 'string=')
    fw_cfg option.
 
-3. Ignition support in Flatcar Linux **Stable** is limited to Butane version 1.0.0 with the generated
-   ignition files being v3.3.0 using ct provider v0.12 (**important**: do not use latest ct provider).
-
-4. When creating a Proxmox UEFI VM with a pre-made image, the special `file=<storage>:0`
+3. When creating a Proxmox UEFI VM with a pre-made image, the special `file=<storage>:0`
    syntax must be used. e.g. if the node local disk is called 'local' then the syntax would be:
 ```
    --efidisk0 "file=local:0,import-from=flatcar_production_qemu_image.img,efitype=4m,format=raw,pre-enrolled-keys=1"
 ```
 
-5. Although the flatcar linux qemu image has a `.img` extension, it is
+4. Although the flatcar linux qemu image has a `.img` extension, it is
    a [qcow2](https://en.wikipedia.org/wiki/Qcow) formatted file. The image has multiple partitions.
 
-6. The documentation isn't clear as to the correct way to mount UEFI code partitions as
+5. The documentation isn't clear as to the correct way to mount UEFI code partitions as
    a read-only volume. It is unclear how to specify a pflash drive for the UEFI code. To see
    the Qemu configuration run `qm showcmd <vm id> --pretty`, which shows the two EFI
    pflash drives.
 
-7. The Terraform Telmate/Proxmox provider doesn't support setting the hookscript upon create, thus
+6. The Terraform Telmate/Proxmox provider doesn't support setting the hookscript upon create, thus
    the hookscript must be set in the template and inherited to child VM's.
 
-8. The proxmox hook script locks the vm configuration - thus stopping the hook script
+7. The proxmox hook script locks the vm configuration - thus stopping the hook script
    from modifying/mutating the configuration. Even if the configuration is changed the
    Proxmox *start* code will not reload the changes after the hookscript runs.
 
-9. There appears to be limitation on the length of the ignition file to about 8k when
+8. There appears to be limitation on the length of the ignition file to about 8k when
    it is put into the description field.
    It is unclear where this limitation is imposed, as the internal code seems to limit
    the description field to 64kbytes. This renders the strategy of hijacking the description
@@ -168,7 +165,7 @@ As of November 2023, the following limitations and residuals have been observed:
    configuration. Markdown is used in the description to try and make clear which
    bit is configuration. 
 
-10. The Terraform provider Telmate/Proxmox can generate duplicate MAC addresses when
+9. The Terraform provider Telmate/Proxmox can generate duplicate MAC addresses when
    provisioning multiple VMs. IPv6 notices the duplicate/collision and doesn't complete
    SLAAC, thus the VM doesn't get IPv6 addresses.
 
