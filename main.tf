@@ -28,8 +28,8 @@ terraform {
         - https://www.flatcar.org/docs/latest/provisioning/config-transpiler/
     */
     ct = {
-      source  = "poseidon/ct"
-      version = ">= 0.13.0"
+      source  = "lucidsolns/ct"
+      version = ">= 0.13.1"
     }
 
     /*
@@ -321,6 +321,7 @@ data "ct_config" "ignition_json" {
   })
   strict       = true
   pretty_print = false
+  files_dir = var.butane_path
 
   snippets = [
     for snippet in var.butane_conf_snippets : templatefile(var.butane_conf, {

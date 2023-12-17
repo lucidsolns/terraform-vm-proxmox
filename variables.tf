@@ -283,3 +283,18 @@ variable "startup" {
   type        = string
   default     = "order=any"
 }
+
+variable butane_path {
+  description = <<-EOF
+     The path used to allow embedding local files.module
+
+     If this is set then the use of local files is enabled: e.g. in the butane files section:
+
+         - path: /etc/docker-compose.yaml
+           contents:
+             local: docker-compose.yaml
+
+  EOF
+  type    = string
+  default = null
+}
