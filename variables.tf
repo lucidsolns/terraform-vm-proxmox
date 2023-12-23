@@ -286,7 +286,7 @@ variable "startup" {
 
 variable butane_path {
   description = <<-EOF
-     The path used to allow embedding local files.module
+     The path used to allow embedding local files.
 
      If this is set then the use of local files is enabled: e.g. in the butane files section:
 

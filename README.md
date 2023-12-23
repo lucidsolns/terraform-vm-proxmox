@@ -32,7 +32,7 @@ specific about this script that requires the VM to be running flatcar.
 
 # Prerequisites
 
-To use this Terraform module the following pre-requisites must be met:
+To use this Terraform module, the following pre-requisites must be met:
 1. Add your root proxmox credentials to a `.tfvars` file
 1. Install the hookscript on your Proxmox host, into the `local:snippets` storage
 1. Create a VM template (e.g. Flatcar Linux)
