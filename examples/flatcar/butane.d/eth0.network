@@ -1,0 +1,9 @@
+[Match]
+Name=eth0
+
+[Network]
+DHCP=yes
+IPv6AcceptRA=yes
+
+[IPv6AcceptRA]
+Token=static:::55

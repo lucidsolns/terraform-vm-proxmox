@@ -5,7 +5,7 @@
 #   - https://coreos.github.io/butane/config-flatcar-v1_0/
 #   - https://coreos.github.io/butane/
 #
-version: 1.0.0
+version: 1.1.0
 variant: flatcar
 
 passwd:
@@ -17,30 +17,12 @@ passwd:
 systemd:
   units:
 
-    # Mount the 'tmp' tag plan9 filesystem on /mnt/tmp. This is done via an
-    # explicit systemd mount file, as the 'filesystem' declaration generated an
-    # error. It is important to note that the mount file name should be named
-    # based on the mount point (i.e. the 'Where' parameter), using kebab case.
-    #
-    # see:
-    #  - https://www.freedesktop.org/software/systemd/man/latest/systemd.mount.html
     - name: mnt-tmp.mount
       enabled: true
-      contents: |
-        [Unit]
-        Description=An example plan9fs mount
-        
-        [Mount]
-        What=tmp
-        Where=/mnt/tmp
-        Type=9p
-        Options=trans=virtio
-        
-        [Install]
-        WantedBy=local-fs.target
+      contents_local: mnt-tmp.mount
 
 storage:
-  # TODO: this would be an easy way to mount the plan9 filesyste, but it
+  # TODO: this would be an easy way to mount the plan9 filesystem, but it
   # fails with the error "Error: config generated was invalid", so directly
   # generate a systemd unit file to mount the filesystem.
   #
@@ -60,16 +42,7 @@ storage:
 
     - path: /etc/systemd/network/10-eth0.network
       contents:
-        inline: |
-          [Match]
-          Name=eth0
-          
-          [Network]
-          DHCP=yes
-          IPv6AcceptRA=yes
-          
-          [IPv6AcceptRA]
-          Token=static:::56  # Specific IPv6 token
+        local: eth0.network
 
     # Locks down the ssh daemon.
     #
@@ -79,12 +52,4 @@ storage:
       overwrite: true
       mode: 0600
       contents:
-        inline: |
-          # Use most defaults for sshd configuration.
-          Subsystem sftp internal-sftp
-          UseDNS no
-
-          PermitRootLogin no
-          AllowUsers core pages
-          AuthenticationMethods publickey        
-  
+        local: sshd_config

@@ -5,14 +5,8 @@
 #   - https://coreos.github.io/butane/config-flatcar-v1_0/
 #   - https://coreos.github.io/butane/
 #
-version: 1.0.0
+version: 1.1.0
 variant: flatcar
-
-passwd:
-  users:
-    - name: core
-      ssh_authorized_keys:
-        - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFkyaM9D4TtCOSdIR8JvH5DCt0UHbfPGx7VlSJrP593N greg-ed25519
 
 storage:
   files:
@@ -23,31 +17,10 @@ storage:
 
     - path: /etc/systemd/network/10-eth0.network
       contents:
-        inline: |
-          [Match]
-          Name=eth0
-          
-          [Network]
-          DHCP=yes
-          IPv6AcceptRA=yes
-          
-          [IPv6AcceptRA]
-          Token=static:::55  # Specific IPv6 token
+        local: eth0.network
 
-    # Locks down the ssh daemon.
-    #
-    # see:
-    #  - https://www.flatcar.org/docs/latest/setup/security/customizing-sshd/
     - path: /etc/ssh/sshd_config
       overwrite: true
       mode: 0600
       contents:
-        inline: |
-          # Use most defaults for sshd configuration.
-          Subsystem sftp internal-sftp
-          UseDNS no
-
-          PermitRootLogin no
-          AllowUsers core pages
-          AuthenticationMethods publickey        
-  
+        local: sshd_config

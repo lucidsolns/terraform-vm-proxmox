@@ -1,5 +1,5 @@
 terraform {
-  required_version = "~> 1.5.0"
+  required_version = "> 1.6.0"
 }
 
 //
@@ -10,12 +10,11 @@ terraform {
 //
 // Make sure the prerequisites are satisfied before provisioning (see the main README.md)
 //
-module "flatcar" {
-  source  = "lucidsolns/proxmox/vm"
-  version = ">= 0.0.5"
-
+module "flatcar_plan9fs_sample" {
+  source        = "lucidsolns/proxmox/vm"
+  version       = ">= 0.0.13"
   vm_id         = 991
-  name          = "flatcar-plan9fs-terraform-example"
+  name          = "flatcar-plan9fs.example.com"
   description   = <<-EOT
       An example **Flatcar** Linux VM provisioned using Terraform.
   EOT
@@ -26,11 +25,14 @@ module "flatcar" {
   pm_password   = var.pm_password
   template_name = "flatcar-production-qemu-3602.2.1"
   butane_conf   = "${path.module}/flatcar.bu.tftpl"
+  butane_path   = "${path.module}/butane.d"
   memory        = 1024
   networks      = [{ bridge = var.bridge, tag = var.network_tag }]
-  plan9fs = [{
-    dirid = "/tmp"
-    tag = "tmp"
-  }]
+  plan9fs       = [
+    {
+      dirid = "/tmp"
+      tag   = "tmp"
+    }
+  ]
 }
 

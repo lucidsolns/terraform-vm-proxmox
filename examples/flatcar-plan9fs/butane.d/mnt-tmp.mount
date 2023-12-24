@@ -1,0 +1,18 @@
+# Mount the 'tmp' tag plan9 filesystem on /mnt/tmp. This is done via an
+# explicit systemd mount file, as the 'filesystem' declaration generated an
+# error. It is important to note that the mount file name should be named
+# based on the mount point (i.e. the 'Where' parameter), using kebab case.
+#
+# see:
+#  - https://www.freedesktop.org/software/systemd/man/latest/systemd.mount.html
+[Unit]
+Description=An example plan9fs mount
+
+[Mount]
+What=tmp
+Where=/mnt/tmp
+Type=9p
+Options=trans=virtio
+
+[Install]
+WantedBy=local-fs.target

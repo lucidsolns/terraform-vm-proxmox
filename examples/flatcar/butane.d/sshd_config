@@ -1,0 +1,11 @@
+# Locks down the ssh daemon.
+#
+# see:
+#  - https://www.flatcar.org/docs/latest/setup/security/customizing-sshd/
+#
+Subsystem sftp internal-sftp
+UseDNS no
+
+PermitRootLogin no
+AllowUsers core pages
+AuthenticationMethods publickey

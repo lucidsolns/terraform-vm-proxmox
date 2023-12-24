@@ -57,8 +57,31 @@ variable "butane_conf" {
        - the ignition will be uploaded as a cloud-init ISO image
        - the VM will get a hookscript to copy the ISO 'meta' file to a PVE file
        - the VM will be configured with a fw_cfg to load the ignition file
+
+     The following terraform template parameters are available:
+         vm_id    - the numeric unique identifier for the virtual machine being provisioned
+         vm_name  - the name for the VM (this will be mutated based on the provided name)
+         vm_count - the number of VMs being provisioned by the template (normally 1)
+         vm_index - the zero based index of the VM being provisioned
   EOF
   default     = null
+}
+
+variable butane_path {
+  description = <<-EOF
+     The path used to allow embedding local files.
+
+     If not set, the directory of the `butane_conf` file will be used.
+
+     If this is set then the use of local files is enabled: e.g. in the butane files section:
+
+         - path: /etc/docker-compose.yaml
+           contents:
+             local: docker-compose.yaml
+
+  EOF
+  type    = string
+  default = null
 }
 
 variable "butane_conf_snippets" {
@@ -284,17 +307,3 @@ variable "startup" {
   default     = "order=any"
 }
 
-variable butane_path {
-  description = <<-EOF
-     The path used to allow embedding local files.
-
-     If this is set then the use of local files is enabled: e.g. in the butane files section:
-
-         - path: /etc/docker-compose.yaml
-           contents:
-             local: docker-compose.yaml
-
-  EOF
-  type    = string
-  default = null
-}

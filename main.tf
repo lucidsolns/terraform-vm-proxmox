@@ -52,8 +52,10 @@ provider "proxmox" {
 
 
 locals {
-  has_butane   = var.butane_conf != null && var.butane_conf != ""
-  has_virtiofs = var.virtiofs != null && length(var.virtiofs) > 0
+  has_butane          = var.butane_conf != null && var.butane_conf != ""
+  has_virtiofs        = var.virtiofs != null && length(var.virtiofs) > 0
+  # The base path used for loading butane snippet files
+  butane_snippet_path = var.butane_path != null ? var.butane_path : dirname(var.butane_conf)
 }
 /**
   Provision a VM with an ignition configuration file.
@@ -314,21 +316,21 @@ EOT
 data "ct_config" "ignition_json" {
   count   = local.has_butane ? var.vm_count : 0
   content = templatefile(var.butane_conf, {
-    "vm_id"          = var.vm_count > 1 ? var.vm_id + count.index : var.vm_id
-    "vm_name"        = var.vm_count > 1 ? "${var.name}-${count.index + 1}" : var.name
-    "vm_count"       = var.vm_count,
-    "vm_count_index" = count.index,
+    "vm_id"    = var.vm_count > 1 ? var.vm_id + count.index : var.vm_id
+    "vm_name"  = var.vm_count > 1 ? "${var.name}-${count.index + 1}" : var.name
+    "vm_count" = var.vm_count,
+    "vm_index" = count.index,
   })
   strict       = true
   pretty_print = false
-  files_dir = var.butane_path
+  files_dir    = local.butane_snippet_path
 
   snippets = [
-    for snippet in var.butane_conf_snippets : templatefile(var.butane_conf, {
-      "vm_id"          = var.vm_count > 1 ? var.vm_id + count.index : var.vm_id
-      "vm_name"        = var.vm_count > 1 ? "${var.name}-${count.index + 1}" : var.name
-      "vm_count"       = var.vm_count,
-      "vm_count_index" = count.index,
+    for s in var.butane_conf_snippets : templatefile("${local.butane_snippet_path}/${s}", {
+      "vm_id"    = var.vm_count > 1 ? var.vm_id + count.index : var.vm_id
+      "vm_name"  = var.vm_count > 1 ? "${var.name}-${count.index + 1}" : var.name
+      "vm_count" = var.vm_count,
+      "vm_index" = count.index,
     })
   ]
 }
