@@ -35,7 +35,7 @@ specific about this script that requires the VM to be running flatcar.
 To use this Terraform module, the following pre-requisites must be met:
 1. Add your root proxmox credentials to a `.tfvars` file
 1. Install the hookscript on your Proxmox host, into the `local:snippets` storage
-1. Create a VM template (e.g. Flatcar Linux)
+1. Create a VM template (e.g. Flatcar Linux) (see example `makeflatcarproxmoxtemplate`)
     - the template **must** have the hookscript set to `multi-hookscript.pl`
 1. Install [terraform-provider-proxmox](https://registry.terraform.io/providers/Telmate/proxmox/latest/docs) v2.9.15 or greater 
 1. Install `virtiofsd` (rust) in `/usr/local/bin` 

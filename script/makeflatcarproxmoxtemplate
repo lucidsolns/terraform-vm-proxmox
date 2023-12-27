@@ -9,6 +9,11 @@
 #
 set -eu
 
+ if ! command -v jq > /dev/null; then
+        echo "jq is not installed. Please install jq."
+        return 1
+fi
+
 usage(){
   >&2 cat <<-EOF
 Usage: $0
@@ -16,46 +21,106 @@ Usage: $0
      [ -v | --verbose ]
      [ -f | --force ]
      [ -n | --name <vm_name> ]
-     [ -i | --osimage <qcow2_image> ]
-     [ --varsimage <qcow2_image> ]
-     [ --codeimage <qcow2_image> ]
      [ -h | --help ]
      <vm_id>
 EOF
     exit 1
 }
 
-OPTS=$(/usr/bin/getopt -o d:vhn:i: --long verbose,help,name:,osimage:,varsimage:,codeimage:,datastore -n 'make_template' -- "$@")
-if [ $? != 0 ] ; then usage >&2 ; exit 1 ; fi
+OPTS=$(/usr/bin/getopt -o d:vhc:n: --long verbose,help,name:,channel:,datastore -n 'make_template' -- "$@")
+if [ $? != 0 ] ; then
+  usage >&2
+  exit 1
+fi
 eval set -- "$OPTS"
 
-VERBOSE=false
-VARS_IMAGE=flatcar_production_qemu_uefi_efi_vars.fd
-CODE_IMAGE=flatcar_production_qemu_uefi_efi_code.fd
-OS_IMAGE=flatcar_production_qemu_uefi_image.img
-NAME=flatcar-linux
+VERBOSE=
 DATASTORE=local
+FLATCAR_RELEASES_URL=https://www.flatcar.org/releases-json/releases.json
+CHANNEL=stable
+ARCHITECTURE=amd64
 
 while true; do
   case "$1" in
     -v | --verbose ) VERBOSE=true; shift ;;
     -h | --help ) usage; exit 1 ;;
     -n | --name ) NAME="$2"; shift 2 ;;
-    --varsimage ) VARS_IMAGE="$2"; shift 2 ;;
-    --codeimage ) CODE_IMAGE="$2"; shift 2 ;;
-    -i | --image ) OS_IMAGE="$2"; shift 2 ;;
+    -c | --channel ) CHANNEL="$2"; shift 2 ;;
     -d | --datastore ) DATASTORE="$2"; shift 2 ;;
     -- ) shift; break ;;
     * ) break ;;
   esac
 done
 
+
 if [[ $# -ne 1 ]]; then
   usage
 fi
 VM_ID=$1
+[ -n "$VERBOSE" ] && echo "Create Flatcar VM template ${VM_ID} from channel ${CHANNEL} (${ARCHITECTURE})"
 
-[ -n "$VERBOSE" ] && echo "Create VM ${VM_ID} (${NAME} from ${OS_IMAGE})"
+
+# Check that the VM template id isn't used. Once a VM template
+# is used, the child clones will reference the template.
+# the jq command command success if the VM is found, otherwise it fails with null.
+if jq -e ".ids.\"${VM_ID}\"" /etc/pve/.vmlist 2>&1 /dev/null ; then
+  echo "WARNING: VM ${VM_ID} exists" >&2
+  exit 2
+else
+  [ -n "$VERBOSE" ] && echo "VM identifier ${VM_ID} is available"
+fi
+
+# Check that the supplied hookscript has been manually installed. This is also
+# a good time to install the 'cloudinit-to-ignition' script and the 'virtiofsd.pl' script
+HOOKSCRIPT_NAME="${DATASTORE}:snippets/multi-hookscript.pl"
+HOOKSCRIPT_PATH=$( /usr/sbin/pvesm path "${HOOKSCRIPT_NAME}" )
+if [ $? != 0 ] ; then
+  echo "ERROR: Failed to determine the path for ${HOOKSCRIPT_NAME}" >&2
+  exit 3
+fi
+
+[ -n "$VERBOSE" ] && echo "Check hookscript ${HOOKSCRIPT_NAME} file ${HOOKSCRIPT_PATH} is executable"
+if [ ! -x "${HOOKSCRIPT_PATH}" ] ; then
+  echo "The hook script ${HOOKSCRIPT_PATH} (${HOOKSCRIPT_NAME}) must be installed and must be executable" >&2
+  exit 2
+else
+  [ -n "$VERBOSE" ] && echo "Hookscript ${HOOKSCRIPT_PATH} is installed"
+fi
+
+
+# A script to get the newest (largest semantic version) of flatcar linux
+[ -n "$VERBOSE" ] && echo "Determining the newest ${CHANNEL} version of Flatcar Linux"
+JQ_SCRIPT='
+   to_entries
+      | map(select(
+           (.key | test("^[0-9.]*$"))
+           and .value.channel == $CHANNEL
+           and (.value.architectures[] | contains($ARCHITECTURE)) ))
+      | max_by( .key | split(".") | map(tonumber) )
+      | .key
+'
+FLATCAR_VERSION=$( curl --no-progress-meter "${FLATCAR_RELEASES_URL}" | \
+    jq -r --arg CHANNEL "${CHANNEL}" --arg ARCHITECTURE "${ARCHITECTURE}" "${JQ_SCRIPT}" )
+NAME="${NAME:-flatcar-production-qemu-${CHANNEL}-${FLATCAR_VERSION}}"
+OS_IMAGE_URL="https://${CHANNEL}.release.flatcar-linux.net/${ARCHITECTURE}-usr/${FLATCAR_VERSION}/flatcar_production_qemu_uefi_image.img"
+VARS_IMAGE_URL="https://${CHANNEL}.release.flatcar-linux.net/${ARCHITECTURE}-usr/${FLATCAR_VERSION}/flatcar_production_qemu_uefi_efi_vars.fd"
+OS_IMAGE_PATH=$( mktemp -t "flatcar_production_qemu_uefi_image.img.${FLATCAR_VERSION}.${CHANNEL}.${ARCHITECTURE}.XXXXX" )
+VARS_IMAGE_PATH=$( mktemp -t "flatcar_production_qemu_uefi_efi_vars.fd.${FLATCAR_VERSION}.${CHANNEL}.${ARCHITECTURE}.XXXXX" )
+
+[ -n "$VERBOSE" ] && echo "Using Flatcar version ${FLATCAR_VERSION} (${CHANNEL} channel, ${ARCHITECTURE})"
+
+DESCRIPTION="Flatcar v${FLATCAR_VERSION} template with Ignition configuration"
+
+[ -n "$VERBOSE" ] && echo "Download Flatcar version ${FLATCAR_VERSION} OS image ${OS_IMAGE_URL}"
+curl -o "${OS_IMAGE_PATH}" "${OS_IMAGE_URL}"
+[ -n "$VERBOSE" ] && echo "Download Flatcar version ${FLATCAR_VERSION} EFI vars image ${VARS_IMAGE_URL}"
+curl -o "${VARS_IMAGE_PATH}" "${VARS_IMAGE_URL}"
+
+
+#  Create the VM that will be used as a template. Most of the parameters can be
+#  changed when a new VM is cloned from the template, but the API does not support
+#  setting the hookscript.
+[ -n "$VERBOSE" ] && echo "Create VM ${VM_ID} (${NAME})"
 qm create ${VM_ID} \
     --name "${NAME}" \
     --agent=1 \
@@ -64,10 +129,10 @@ qm create ${VM_ID} \
     --ostype l26 \
     --scsihw virtio-scsi-single \
     --boot order=scsi0 \
-    --hookscript ${DATASTORE}:snippets/cloudinit-to-ignition \
-    --efidisk0 "file=${DATASTORE}:0,import-from=$(readlink -e ${VARS_IMAGE}),format=raw,efitype=4m,pre-enrolled-keys=1" \
-    --scsi0 "file=${DATASTORE}:0,import-from=$(readlink -e ${OS_IMAGE}),format=qcow2" \
-    --description "Flatcar Template with Ignition configuration" \
+    --hookscript "${HOOKSCRIPT_NAME}" \
+    --efidisk0 "file=${DATASTORE}:0,import-from=$(readlink -e ${VARS_IMAGE_PATH}),format=raw,efitype=4m,pre-enrolled-keys=1" \
+    --scsi0 "file=${DATASTORE}:0,import-from=$(readlink -e ${OS_IMAGE_PATH}),format=qcow2" \
+    --description "${DESCRIPTION}" \
     --tag "flatcar,template"
 
 #  Convert the VM to a template
