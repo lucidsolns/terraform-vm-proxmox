@@ -5,6 +5,11 @@
       <excludeFolder url="file://$MODULE_DIR$/.tmp" />
       <excludeFolder url="file://$MODULE_DIR$/temp" />
       <excludeFolder url="file://$MODULE_DIR$/tmp" />
+      <excludeFolder url="file://$MODULE_DIR$/.terraform" />
+      <excludeFolder url="file://$MODULE_DIR$/examples/flatcar-plan9fs/.terraform" />
+      <excludeFolder url="file://$MODULE_DIR$/examples/flatcar-plan9fs/terraform.d" />
+      <excludeFolder url="file://$MODULE_DIR$/examples/flatcar/.terraform" />
+      <excludeFolder url="file://$MODULE_DIR$/examples/flatcar/terraform.d" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
