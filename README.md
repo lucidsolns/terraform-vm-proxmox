@@ -80,11 +80,13 @@ VE v.8.x does support cloud-init.
 
 Testing of this feature has been done with Flatcar Linux.
 
-The ignition configuration is uploaded from the terraform script as a resource
+The terraform script transfers the ignition configuration as a resource
 to a cloud-init ISO image in Proxmox VE with a name based on the VM id. The hookscript
 is then configured to extract the configuration from the cloud-init ISO at
 VM pre-start phase and put it in the `/etc/pve/local/ignition/<VM_ID>.ign`
-file. The QEMU arguments reference this file as a firmware configuration.
+file. The QEMU arguments reference this file as a firmware configuration
+via the `fw_cfg` option. The ignition JSON content can be viewed in the
+target Linux VM in the file `/sys/firmware/qemu_fw_cfg/by_name/opt/org.flatcar-linux/config/raw`.
 
 This module will create an ignition configuration per VM (when multiple VMs
 are provisioned). This means that small tweaks per VM can be specified (however

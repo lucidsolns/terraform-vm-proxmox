@@ -322,7 +322,7 @@ data "ct_config" "ignition_json" {
     "vm_index" = count.index,
   })
   strict       = true
-  pretty_print = false
+  pretty_print = true
   files_dir    = local.butane_snippet_path
 
   snippets = [
