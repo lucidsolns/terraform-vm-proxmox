@@ -98,9 +98,9 @@ are passed through to the Butane configuration render function.
 This supports exporting directories from the Proxmox host into a VM. Multiple directories
 are supported.
 
-The VM operating system must support virtiofs (`CONFIG_VIRTIO_FS`) to allow it to mount 
-the host directory. At the time of writing Flatcar Linux doesn't support virtiofs, however
-Alpine Linux does support virtiofs.
+The VM operating system must support virtiofs ([`CONFIG_VIRTIO_FS`](https://www.kernelconfig.io/config_virtio_fs))
+to allow it to mount the host directory. At the time of writing Flatcar Linux doesn't
+support virtiofs, however Alpine Linux does support virtiofs.
 
 The virtiofs support is implemented via QEMU arguments and running an instance of the 
 rust based `virtiofsd` daemon per shared directory. A precompiled x86_64 rust binary

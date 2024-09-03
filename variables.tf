@@ -1,4 +1,4 @@
-variable "vm_id" {
+variable "vmid" {
   description = "The unique Proxmox id for the VM."
   type        = number
 }
@@ -80,8 +80,8 @@ variable butane_path {
              local: docker-compose.yaml
 
   EOF
-  type    = string
-  default = null
+  type        = string
+  default     = null
 }
 
 variable "butane_conf_snippets" {
@@ -133,6 +133,17 @@ variable "template_name" {
   default     = "flatcar_qemu"
 }
 
+variable "full_clone" {
+  description = <<-EOF
+     Set to `true` to create a full clone, or `false` to create a linked clone.
+     See the [docs about cloning](https://pve.proxmox.com/pve-docs/chapter-qm.html#qm_copy_and_clone) for more info.
+     Only applies when `clone` is set."
+  EOF
+  type        = bool
+  default     = true
+}
+
+
 variable "cores" {
   description = "The number of CPU cores to allocate to the VM"
   type        = number
@@ -164,22 +175,6 @@ variable "networks" {
       bridge = "vmbr0",
     }
   ]
-}
-
-
-variable "disks" {
-  description = "An ordered list of disks"
-  // see https://registry.terraform.io/providers/Telmate/proxmox/latest/docs/resources/vm_qemu#argument-reference
-  type        = list(object({
-    type    = string
-    storage = string
-    size    = string
-    file    = optional(string)
-    format  = optional(string)
-    volume  = optional(string)
-    slot    = optional(number)
-  }))
-  default = []
 }
 
 /*
@@ -304,6 +299,77 @@ variable "startup" {
     startup = `[[order=]\d+] [,up=\d+] [,down=\d+]`
   EOF
   type        = string
-  default     = "order=any"
+  default     = "order=999"
 }
 
+variable "boot" {
+  description = <<-EOF
+    The order of boot devices for the VM.
+
+    In general it is expected that VMs will be created with a clone image, thus
+    booting off installation media should not be required.
+
+      see:
+       - https://pve.proxmox.com/wiki/Manual:_qm.conf#_options
+  EOF
+  type        = string
+  default     = null
+}
+
+variable "pool" {
+  description = <<-EOF
+    The name of a pool resource
+  EOF
+  type        = string
+  default     = null
+}
+
+variable "cloud_init_storage" {
+  description = <<-EOF
+    The storage name to use for storing cloud-init images which are used
+    as a container for the butane/ignition files
+  EOF
+  type        = string
+  default     = "local"
+}
+
+
+# An optional list of disks (in module flat list format, rather than hierarchical format).
+#
+#  see:
+#  - https://github.com/Telmate/terraform-provider-proxmox/issues/986
+variable "disks" {
+  description = "A optional list of disks in a flat format"
+  default     = []
+  type        = list(object({
+    slot    = string # {ide,sata,scsi,virtio}{0,1,2,...}
+    storage = optional(string) # e.g. "local"
+    type    = optional(string) # disk, cdrom, cloudinit
+
+    id             = optional(number), # computed
+    asyncio        = optional(string),
+    backup         = optional(bool),
+    cache          = optional(string),
+    discard        = optional(bool),
+    disk_file      = optional(string),
+    emulatessd     = optional(bool),
+    format         = optional(string),
+    iothread       = optional(bool),
+    iso            = optional(string),
+    linked_disk_id = optional(number),
+    passthrough    = optional(bool),
+    readonly       = optional(bool),
+    replicate      = optional(bool),
+    serial         = optional(string),
+    size           = optional(string), # computed
+    wwn            = optional(string),
+  }))
+  validation {
+    condition = alltrue([
+      for item in var.disks : (
+      can(regex("[a-zA-Z]{3,6}[0-9]{1,2}", item.slot))
+      )
+    ])
+    error_message = "The slot must be of the form scsi0..scsi31, virtio0..virtio31, sata0..sata31, ide0..ide7"
+  }
+}
