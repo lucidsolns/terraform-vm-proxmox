@@ -9,7 +9,7 @@ terraform {
 //
 module "flatcar_sample" {
   source               = "lucidsolns/proxmox/vm"
-  version              = ">= 0.1.0"
+  version              = ">= 0.1.1"
   vmid                 = 990
   name                 = "flatcar-terraform.example.com"
   description          = <<-EOT
