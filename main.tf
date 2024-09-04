@@ -10,7 +10,7 @@ terraform {
     proxmox = {
       // https://developer.hashicorp.com/terraform/cli/config/config-file#provider-installation
       source  = "Telmate/proxmox"
-      version = ">= 3.0.1-rc4"
+      version = "3.0.1-rc4" // can't say '>= 3.0.1-rc4'
     }
 
     /*
